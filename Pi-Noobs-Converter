@@ -1,0 +1,68 @@
+#!/bin/sh
+#Script to convert Customised Raspberry Pi Images to NOOBS compatible images.
+
+command -v losetup >/dev/null 2>&1 || { echo "I require losetup but it's not installed. Aborting." >&2; exit 1; }
+command -v kpartx >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
+command -v parted >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
+
+if [ -z "$1" ]
+  then
+    echo "You must supply an image file to convert..."
+    exit 1
+fi
+
+ORIG_IMG=$1
+NEW_IMG="${ORIG_IMG%.*}-NOOBS"
+
+echo "Creating tempory working directory..."
+mkdir -p /tmp/Noobs-Converter/Orig/1 /tmp/Noobs-Converter/Orig/2 /tmp/Noobs-Converter/New/1 /tmp/Noobs-Converter/New/2
+
+echo "Mounting Original Image..."
+sudo losetup /dev/loop0 $ORIG_IMG
+sudo kpartx -av /dev/loop0
+sudo mount /dev/mapper/loop0p1 /tmp/Noobs-Converter/Orig/1
+sudo mount /dev/mapper/loop0p2 /tmp/Noobs-Converter/Orig/2
+size=$(($(df|grep loop0p1|tr -s ' '|cut -d ' ' -f3) + $(df|grep loop0p2|tr -s ' '|cut -d ' ' -f3) + 200000))
+
+echo "Creating New Empty NOOBS Image..."
+dd bs=1024 if=/dev/zero of=$NEW_IMG count=0 seek=$size
+sudo losetup /dev/loop1 $NEW_IMG
+sudo kpartx -av /dev/loop1
+
+echo "Building partition Table..."
+sudo parted -s /dev/loop1	mklabel msdos
+sudo parted -s /dev/loop1 mkpart primary fat16 4194kb 62.9MB
+sudo parted -s /dev/loop1 mkpart extended 62.9MB 100%
+sudo parted -s /dev/loop1 mkpart logical 62.9MB 100%
+sudo kpartx -av /dev/loop1
+
+echo "Formatting partitions..."
+sudo mkfs.vfat /dev/mapper/loop1p1
+sudo mkfs.ext4 /dev/mapper/loop1p5
+
+echo "Mounting New Image..."
+sudo mount /dev/mapper/loop1p1 /tmp/Noobs-Converter/New/1
+sudo mount /dev/mapper/loop1p5 /tmp/Noobs-Converter/New/2
+
+echo "Transfering Data..."
+sudo cp -pR /tmp/Noobs-Converter/Orig/1/* /tmp/Noobs-Converter/New/1/
+sudo cp -pR /tmp/Noobs-Converter/Orig/2/* /tmp/Noobs-Converter/New/2/
+ls -l /tmp/Noobs-Converter/Orig/2/home/pi 
+ls -l /tmp/Noobs-Converter/New/2/home/pi
+
+
+sudo sed -i 's/mmcblk0p2/mmcblk0p5/g' /tmp/Noobs-Converter/New/1/cmdline.txt
+cat /tmp/Noobs-Converter/New/1/cmdline.txt
+
+echo "Tidying up..."
+sudo umount /tmp/Noobs-Converter/Orig/1
+sudo umount /tmp/Noobs-Converter/Orig/2
+sudo kpartx -d /dev/loop0
+sudo losetup -d /dev/loop0
+sudo umount /tmp/Noobs-Converter/New/1
+sudo umount /tmp/Noobs-Converter/New/2
+sudo kpartx -d /dev/loop1
+sudo losetup -d /dev/loop1
+
+echo "Compressing Image... This may take some time!"
+xz -9 -e $NEW_IMG
