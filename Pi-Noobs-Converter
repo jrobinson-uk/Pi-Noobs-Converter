@@ -3,7 +3,7 @@
 
 command -v losetup >/dev/null 2>&1 || { echo "I require losetup but it's not installed. Aborting." >&2; exit 1; }
 command -v kpartx >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
-command -v parted >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
+command -v parted >/dev/null 2>&1 || { echo "I require parted but it's not installed. Aborting." >&2; exit 1; }
 
 if [ -z "$1" ]
   then
@@ -45,8 +45,8 @@ sudo mount /dev/mapper/loop1p1 /tmp/Noobs-Converter/New/1
 sudo mount /dev/mapper/loop1p5 /tmp/Noobs-Converter/New/2
 
 echo "Transfering Data..."
-sudo cp -pR /tmp/Noobs-Converter/Orig/1/* /tmp/Noobs-Converter/New/1/
-sudo cp -pR /tmp/Noobs-Converter/Orig/2/* /tmp/Noobs-Converter/New/2/
+sudo cp -a /tmp/Noobs-Converter/Orig/1/* /tmp/Noobs-Converter/New/1/
+sudo cp -a /tmp/Noobs-Converter/Orig/2/* /tmp/Noobs-Converter/New/2/
 ls -l /tmp/Noobs-Converter/Orig/2/home/pi 
 ls -l /tmp/Noobs-Converter/New/2/home/pi
 
@@ -65,4 +65,4 @@ sudo kpartx -d /dev/loop1
 sudo losetup -d /dev/loop1
 
 echo "Compressing Image... This may take some time!"
-xz -9 -e $NEW_IMG
+xz -9 -ev $NEW_IMG
