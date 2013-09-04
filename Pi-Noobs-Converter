@@ -65,4 +65,4 @@ sudo kpartx -d /dev/loop1
 sudo losetup -d /dev/loop1
 
 echo "Compressing Image... This may take some time!"
-xz -9 -e $NEW_IMG
+xz -9 -ev $NEW_IMG
