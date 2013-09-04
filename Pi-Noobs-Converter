@@ -3,7 +3,7 @@
 
 command -v losetup >/dev/null 2>&1 || { echo "I require losetup but it's not installed. Aborting." >&2; exit 1; }
 command -v kpartx >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
-command -v parted >/dev/null 2>&1 || { echo "I require kpartx but it's not installed. Aborting." >&2; exit 1; }
+command -v parted >/dev/null 2>&1 || { echo "I require parted but it's not installed. Aborting." >&2; exit 1; }
 
 if [ -z "$1" ]
   then
