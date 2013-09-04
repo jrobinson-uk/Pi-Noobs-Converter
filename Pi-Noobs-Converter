@@ -45,8 +45,8 @@ sudo mount /dev/mapper/loop1p1 /tmp/Noobs-Converter/New/1
 sudo mount /dev/mapper/loop1p5 /tmp/Noobs-Converter/New/2
 
 echo "Transfering Data..."
-sudo cp -pR /tmp/Noobs-Converter/Orig/1/* /tmp/Noobs-Converter/New/1/
-sudo cp -pR /tmp/Noobs-Converter/Orig/2/* /tmp/Noobs-Converter/New/2/
+sudo cp -a /tmp/Noobs-Converter/Orig/1/* /tmp/Noobs-Converter/New/1/
+sudo cp -a /tmp/Noobs-Converter/Orig/2/* /tmp/Noobs-Converter/New/2/
 ls -l /tmp/Noobs-Converter/Orig/2/home/pi 
 ls -l /tmp/Noobs-Converter/New/2/home/pi
 
